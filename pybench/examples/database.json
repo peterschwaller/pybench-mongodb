@@ -1,0 +1,32 @@
+{
+    // Set the defaults for ALL databases.
+    "database-defaults": {
+        "options": {
+            "dbpath": "data/mongodb",
+            "logpath": "data/mongod.log",
+            "pidfilepath": "/home/peter/dev/pybench-mongodb/pybench/data/mongod.pid",
+            "slowms": 10000,
+            "profile": 0,
+            "port": 40000,
+            "logappend": null,
+            "fork": null,
+            "quiet": null,
+        }
+        // Clean out anything in any of the db paths before launching.
+        "clear-paths": true,
+
+    },
+    "databases": [
+        {
+            "name": "Rocks 4GB Snappy",
+            "disabled": false,
+            "options": {
+                "storageEngine": "rocksdb",
+                "rocksdbCacheSizeGB": 4,
+                "rocksdbCompression": "snappy"
+                "slowms": 20000,
+                "httpinterface": null,
+            }
+        }
+    ]
+}

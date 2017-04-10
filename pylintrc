@@ -1,0 +1,4 @@
+[MASTER]
+disable=locally-disabled,duplicate-code
+reports=no
+
