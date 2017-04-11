@@ -98,13 +98,14 @@ def main():
         if mongod.is_enabled():
             mongod.start()
 
-            testcase = Testcase(
-                config["testcases"],
-                config)
+            try:
+                testcase = Testcase(
+                    config["testcases"],
+                    config)
 
-            testcase.run(mongod.get_uri())
-
-            mongod.shutdown()
+                testcase.run(mongod.get_uri())
+            finally:
+                mongod.shutdown()
 
 
 if __name__ == "__main__":

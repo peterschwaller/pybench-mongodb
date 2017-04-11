@@ -1,14 +1,18 @@
 """
 Testcase class
 """
+from collections import ChainMap
 from copy import deepcopy
+from datetime import datetime, timedelta
 import logging
 import random
 import time
+import uuid
 
 from bson.binary import Binary
 import lorem
 import pymongo
+from pytz import utc
 
 from .remerge import remerge
 
@@ -33,36 +37,77 @@ class Testcase(object):
 
     def run(self, uri):
         """run"""
-        print(uri)
         database = self.connect(uri)
-        self.startup(database)
+        self._process(database, "startup")
+        self._process(database, "testing")
+        self._process(database, "cleanup")
 
-    def startup(self, database):
+    def _process(self, database, section):
         """startup"""
-        if self.config.get("startup"):
-            logging.info("Processing %d startup commands.", len(self.config["startup"]))
+        if self.config.get(section):
+            logging.debug("Processing %d %s commands.", len(self.config[section]), section)
         else:
-            logging.info("No startup commands to process.")
+            logging.debug("No %s commands to process.", section)
 
-        for key, value in self.config.get("startup", {}).items():
-            logging.info("Processing %s", key)
+        for key, value in self.config.get(section, {}).items():
+            logging.debug("Processing %s", key)
             if value["operation"] == "insert":
-                self.insert(database, value)
+                self.insert(database, ChainMap(value, self.config))
             elif value["operation"] == "index":
                 self.create_indexes(database, value)
             else:
                 assert False
 
+    def _get_bulk(self, database, method, collection):
+        """get bulk"""
+        if method == "unordered-bulk":
+            bulk = database[collection].initialize_unordered_bulk_op()
+        elif method == "ordered-bulk":
+            bulk = database[collection].initialize_ordered_bulk_op()
+        else:
+            bulk = None
+        return bulk
+
+
     def insert(self, database, command):
         """insert"""
-        print(command)
-
         iterations = 0
         start_time = time.time()
-        while iterations < command["max-iterations"]:
-            doc = self.build_doc(command["doc"])
-            database[self.config["db-name"]][self.config["collection"]].insert(doc)
+
+        insert_method = command.get("batch-method")
+        batch_size = command.get("batch-size")
+
+        bulk = self._get_bulk(database, insert_method, command.get("collection"))
+
+        insert_array = []
+        while iterations < command.get("max-iterations"):
+            doc = self.build_doc(command.get("doc"))
             iterations += 1
+
+            if bulk:
+                bulk.insert(doc)
+                if iterations % batch_size == 0:
+                    bulk.execute()
+                    bulk = self._get_bulk(database, insert_method, command.get("collection"))
+            elif insert_method == "array":
+                insert_array.append(doc)
+                if iterations % batch_size == 0:
+                    database[command.get("collection")].insert(insert_array)
+                    insert_array = []
+            elif insert_method == "single":
+                database[command.get("collection")].insert(doc)
+            else:
+                assert False
+
+        # Need to write out last records if max-iterations isn't a multiple of batch-size
+        if bulk:
+            if iterations % batch_size != 0:
+                bulk.execute()
+        elif insert_method == "array":
+            if iterations % batch_size != 0:
+                database[command.get("collection")].insert(insert_array)
+
+        print("ELAPSED", time.time() - start_time)
 
     def build_doc(self, input_doc):
         """build doc"""
@@ -96,22 +141,31 @@ class Testcase(object):
                 start = random.randrange(0, len(self.bytes)-length)
                 end = start+length
                 return Binary(self.bytes[start:end], 3)
+            elif key == "date":
+                offset = self.resolve_value(value)
+                return datetime.now(tz=utc) + timedelta(seconds=offset)
+            elif key == "uuid":
+                assert value is None
+                return uuid.uuid4()
+            elif key == "uuid-string":
+                assert value is None
+                return str(uuid.uuid4())
             else:
                 assert False
 
     def create_indexes(self, database, command):
 
         for collection in command["indexes"]:
-            logging.info("Creating indexes for %s.", collection)
+            logging.debug("Creating indexes for %s.", collection)
             for item in command["indexes"][collection]:
                 index = [(x[0], x[1]) for x in item["index"]]
-                logging.info("Creating %s.", index)
+                logging.debug("Creating %s.", index)
                 if "kwargs" in item:
                     database[collection].create_index(
                         index,
                         background=True,
                         **item["kwargs"])
                 else:
-                    database[self.config["db-name"]][collection].create_index(
+                    database[collection].create_index(
                         index,
                         background=True)

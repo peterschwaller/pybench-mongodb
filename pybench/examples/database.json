@@ -11,6 +11,7 @@
             "logappend": null,
             "fork": null,
             "quiet": null,
+            "bind_ip": "0.0.0.0",
         }
         // Clean out anything in any of the db paths before launching.
         "clear-paths": true,
@@ -24,6 +25,17 @@
                 "storageEngine": "rocksdb",
                 "rocksdbCacheSizeGB": 4,
                 "rocksdbCompression": "snappy"
+                "slowms": 20000,
+                "httpinterface": null,
+            }
+        },
+        {
+            "name": "WT 4GB",
+            "disabled": false,
+            "options": {
+                "storageEngine": "wiredTiger",
+                "wiredTigerCacheSizeGB": 4,
+                "wiredTigerJournalCompressor": "snappy"
                 "slowms": 20000,
                 "httpinterface": null,
             }

@@ -7,16 +7,14 @@
         "random-bytes-buffer-size": 1000000,
         "max-iterations": 1000000,
         "max-time-seconds": 60*60*4,
-        "insert-batch-size": 1000,
-        "update-batch-size": 1000,
+        "batch-size": 1000,
 
         // Valid values for xyz-method:
         // "unordered-bulk"
         // "ordered-bulk"
-        // "array" -- onlu valid for insert .insert(array)
-        // "single" -- use
-        "insert-method": "unordered-bulk",
-        "update-method": "unordered-bulk"
+        // "array" -- only valid for insert .insert(array)
+        // "single" -- one at a time
+        "batch-method": "array",
 
         "rate-limit": 0,  // 0=no limit, otherwise set to operations per second
 
@@ -32,28 +30,6 @@
     },
     "testcases": {
         "startup": {
-            "prepare data": {
-                "operation": "insert",
-                "max-iterations": 10000,
-                "max-time-seconds": 60*60,
-                "doc": {
-                    "status": {
-                        "random-list": ["ready", "running", "repeated"]
-                    },
-                    "number": {
-                        "random-int": [0, 10000]
-                    },
-                    "address": {
-                        "random-text": {
-                            "random-int": [5, 25]
-                        }
-                    },
-                    "image": {
-                        "random-bytes": 10  // number of bytes
-                    },
-                    "version": 1,
-                }
-            },
             "create indexes": {
                 "operation": "index",
                 "indexes": {
@@ -66,17 +42,44 @@
                             },
                         },
                         {
-                            "index": [["status", 1]],
-                        },
-                        {
-                            "index": [["address", 1]],
+                            "index": [["status", 1],["date", 1]],
                         },
                     ]
                 }
             },
         },
         "testing": {
-
+            "insert data": {
+                "operation": "insert",
+                "max-iterations": 1000000,
+                "max-time-seconds": 60*60,
+                "doc": {
+                    "status": {
+                        "random-list": ["ready", "running", "repeated"]
+                    },
+                    "date": {
+                        "date": 0  // offset in +- seconds from current time
+                    }
+                    "guid": {
+                        "uuid": null
+                    },
+                    "guid-string": {
+                        "uuid-string": null
+                    },
+                    "number": {
+                        "random-int": [0, 10000]
+                    },
+                    "address": {
+                        "random-text": {
+                            "random-int": [500, 2500]
+                        }
+                    },
+                    "image": {
+                        "random-bytes": 100  // number of bytes
+                    },
+                    "version": 1,
+                }
+            },
         },
         "cleanup": {
 

@@ -2,6 +2,7 @@
 Mongod
 """
 from copy import deepcopy
+import logging
 import os
 import shutil
 
@@ -22,25 +23,33 @@ class Mongod(object):
 
     def start(self):
         """start"""
-        if self.config["options"].get("clear-paths"):
+        if self.config.get("clear-paths"):
+            logging.debug("Clearing DB paths.")
             for file in ["logpath", "pidfilepath"]:
                 path = self.config["options"].get(file)
                 if path:
-                    os.remove(path)
+                    try:
+                        os.remove(path)
+                    except FileNotFoundError:
+                        pass
             if "dbpath" in self.config["options"]:
-                shutil.rmtree(self.config["options"]["dbpath"])
+                try:
+                    shutil.rmtree(self.config["options"]["dbpath"])
+                except FileNotFoundError:
+                    pass
 
         if "dbpath" in self.config["options"]:
-            print("dbpath", self.config["options"]["dbpath"])
             os.makedirs(self.config["options"]["dbpath"], exist_ok=True)
 
         cmd = "mongod"
         for key, value in self.config["options"].items():
             cmd += " --{} {}".format(key, value if value is not None else "")
+        if "quiet" in self.config["options"]:
+            cmd += " > /dev/null"
 
-        print(cmd)
+        logging.debug("Starting database with command: %s", cmd)
         os.system(cmd)
-        print("cmd finished")
+        logging.info("Started %s", self.config.get("name"))
 
     def shutdown(self):
         """shutdown"""
@@ -49,10 +58,11 @@ class Mongod(object):
             cmd += " --dbpath {}".format(self.config["options"]["dbpath"])
         if "quiet" in self.config["options"]:
             cmd += " --quiet"
+            cmd += " > /dev/null"
 
-        print(cmd)
+        logging.debug("Shutting down database with command: ", cmd)
         os.system(cmd)
-        print("cmd finished")
+        logging.info("Stopped %s", self.config.get("name"))
 
     def get_uri(self):
         """get uri"""
