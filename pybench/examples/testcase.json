@@ -1,0 +1,85 @@
+{
+    // Set the defaults for ALL databases.
+    "testcase-defaults": {
+        "db-name": "pybench",
+        "collection": "MyData",
+        "random-text-buffer-size": 1000000,
+        "random-bytes-buffer-size": 1000000,
+        "max-iterations": 1000000,
+        "max-time-seconds": 60*60*4,
+        "insert-batch-size": 1000,
+        "update-batch-size": 1000,
+
+        // Valid values for xyz-method:
+        // "unordered-bulk"
+        // "ordered-bulk"
+        // "array" -- onlu valid for insert .insert(array)
+        // "single" -- use
+        "insert-method": "unordered-bulk",
+        "update-method": "unordered-bulk"
+
+        "rate-limit": 0,  // 0=no limit, otherwise set to operations per second
+
+        "threads": 10,
+        "processes": 1,
+        "write-concern": {
+
+        },
+
+        "feedback-operations": 10000,  // -1 for none
+        "feedback-seconds": 5,         // -1 for none
+
+    },
+    "testcases": {
+        "startup": {
+            "prepare data": {
+                "operation": "insert",
+                "max-iterations": 10000,
+                "max-time-seconds": 60*60,
+                "doc": {
+                    "status": {
+                        "random-list": ["ready", "running", "repeated"]
+                    },
+                    "number": {
+                        "random-int": [0, 10000]
+                    },
+                    "address": {
+                        "random-text": {
+                            "random-int": [5, 25]
+                        }
+                    },
+                    "image": {
+                        "random-bytes": 10  // number of bytes
+                    },
+                    "version": 1,
+                }
+            },
+            "create indexes": {
+                "operation": "index",
+                "indexes": {
+                    "MyData": [
+                        {
+                            "index": [["msgID", 1]],
+                            "kwargs": {
+                                "unique": true,
+                                "partialFilterExpression": {"msgID": {"$exists": 1}}
+                            },
+                        },
+                        {
+                            "index": [["status", 1]],
+                        },
+                        {
+                            "index": [["address", 1]],
+                        },
+                    ]
+                }
+            },
+        },
+        "testing": {
+
+        },
+        "cleanup": {
+
+        }
+    }
+}
