@@ -24,8 +24,9 @@ class Testcase(object):
     def __init__(self, testcase_config, config):
         self.config = remerge([
             deepcopy(config.get("testcase-defaults", {})),
-            deepcopy(testcase_config)
+            deepcopy(testcase_config["steps"])
         ])
+        self.name = testcase_config["name"]
         self.uri = ""
 
         self.compressible = "".join("a" for _ in range(10000))
@@ -36,6 +37,10 @@ class Testcase(object):
 
         self.bytes = bytes(
             [random.randrange(0, 256) for _ in range(self.config["random-bytes-buffer-size"])])
+
+    def get_name(self):
+        """get name"""
+        return self.name
 
     def connect(self):
         """connect"""
@@ -55,14 +60,23 @@ class Testcase(object):
                 args=("testing", stats, ))
             process_list.append(process)
             process.start()
-        for process in process_list:
-            process.join()
+
+        while not stats.done.is_set():
+            time.sleep(2)
 
         stats.end()
+
+        logging.debug("Waiting on processes to finish.")
+        for process in process_list:
+            process.join(30)
+            if process.is_alive():
+                process.terminate()
+                logging.info(
+                    "One or more processes hasn't finished.  Manual cleanup may be required.")
+
         self._worker("cleanup")
 
     def _process(self, section, stats):
-        print("stats", stats.start_time)
         threads = []
         for _ in range(self.config.get("threads-per-process")):
             thread = threading.Thread(
@@ -76,15 +90,14 @@ class Testcase(object):
         """startup"""
         database = self.connect()
 
-        if self.config.get(section):
-            logging.debug("Processing %d %s commands.", len(self.config[section]), section)
-        else:
-            logging.debug("No %s commands to process.", section)
-
-        for key, value in self.config.get(section, {}).items():
-            logging.debug("Processing %s", key)
+        for _, value in self.config.get(section, {}).items():
             if value["operation"] == "insert":
-                self.insert(database, ChainMap(value, self.config), stats)
+                max_iterations = value.get("count", None)
+                self.insert(
+                    database,
+                    ChainMap(value, self.config),
+                    stats,
+                    max_iterations=max_iterations)
             elif value["operation"] == "index":
                 self.create_indexes(database, value)
             else:
@@ -101,7 +114,7 @@ class Testcase(object):
             bulk = None
         return bulk
 
-    def insert(self, database, command, stats):
+    def insert(self, database, command, stats, max_iterations=None):
         """insert"""
         # pylint: disable=too-many-branches
         iterations = 0
@@ -120,7 +133,7 @@ class Testcase(object):
             # Only check every 5 seconds
             if time.time() - last_check > 5:
                 last_check = time.time()
-                if stats.done.is_set():
+                if stats and stats.done.is_set():
                     break
 
             if bulk:
@@ -143,6 +156,9 @@ class Testcase(object):
                     stats.log("insert", {"inserts": 1})
             else:
                 assert False
+
+            if max_iterations and iterations > max_iterations:
+                break
 
     def build_doc(self, input_doc):
         """build doc"""

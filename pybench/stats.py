@@ -5,6 +5,7 @@ Stats for pybench-mongodb
 import logging
 import multiprocessing
 import queue
+import sys
 import threading
 import time
 
@@ -28,6 +29,9 @@ class Stats(object):
     """Stats class"""
     # pylint: disable=too-many-instance-attributes
 
+    header_format = "Time,              Elapsed (s),      Int,     Int/s,     Total,   Total/s"
+    data_format = "{},{:10d}{:10d},{:10.1f},{:10d},{:10.1f}"
+
     def __init__(self, max_iterations, max_time_seconds):
         self.max_iterations = max_iterations
         self.max_time_seconds = max_time_seconds
@@ -38,6 +42,7 @@ class Stats(object):
         self.total_inserts = 0
         self.queue = multiprocessing.Queue(maxsize=500)
         self.data = {}
+        self.results = []
         self.lock = threading.Lock()
 
     def set_interval(self, interval):
@@ -60,7 +65,7 @@ class Stats(object):
 
         if instance == "insert" and "inserts" in counters:
             self.total_inserts += counters["inserts"]
-            if self.total_inserts > self.max_iterations:
+            if self.total_inserts >= self.max_iterations:
                 self.done.set()
 
         if time.time() - self.start_time > self.max_time_seconds:
@@ -84,12 +89,20 @@ class Stats(object):
         if self.end_time == 0:
             self.end_time = time.time()
 
+    def save(self, file):
+        """save"""
+        print(Stats.header_format, file=file)
+
+        for item in self.results:
+            self.show_result(item, file)
+
     def stats_monitor(self):
         """monitor"""
         last_shown_index = 0
 
         logging.info("Starting stats monitor")
 
+        output_count = 0
         while not self.done.is_set():
             time_index = (int(int(time.time() - self.interval - STATS_DUMP_DELAY) /
                               self.interval))
@@ -102,13 +115,17 @@ class Stats(object):
                 self.lock.release()
 
             if time_index > last_shown_index:
+                if output_count % 10 == 0:
+                    print(Stats.header_format)
                 self.show_record(time_index)
+                output_count += 1
                 last_shown_index = time_index
 
             try:
                 item = self.queue.get(True, 0.1)
             except queue.Empty:
                 continue
+
             self.process_item(item[0], item[1], item[2])
 
         if last_shown_index + 1 in self.data:
@@ -116,7 +133,7 @@ class Stats(object):
 
         logging.info("Ending stats monitor")
 
-    def show_record(self, time_index):
+    def show_record(self, time_index, file=sys.stdout):
         """show record"""
         # pylint: disable=too-many-locals,too-many-branches
 
@@ -124,13 +141,13 @@ class Stats(object):
             return
 
         time_string = time.strftime(
-            "%H:%M:%S",
-            time.localtime(time_index * self.interval))
+            "%Y-%m-%d %H:%M:%S",
+            time.localtime((time_index+1) * self.interval))
 
         if len(self.data[time_index]) == 0:
-            print("{} {}s - no records".format(
-                time_string,
-                self.interval))
+            print(Stats.data_format.format(
+                time_string, int(time.time() - self.start_time), 0, 0, 0, 0),
+                  file=file)
         else:
             inserts = 0
             for instance in sorted(self.data[time_index]):
@@ -139,11 +156,24 @@ class Stats(object):
 
             # The first interval is truncated...
             interval = min(self.interval, ((time_index+1) * self.interval) - self.start_time)
-            print("{} {}s - {}, {:0.1f}/s, cum: {}, {:0.1f}/s".format(
-                time_string,
-                self.interval,
-                inserts,
-                inserts / interval,
-                self.total_inserts,
-                self.total_inserts / (time.time() - self.start_time)
-                ))
+            result = {
+                "time-string": time_string,
+                "elapsed": int(time.time() - self.start_time),
+                "inserts": inserts,
+                "insert-rate": inserts / interval,
+                "total": self.total_inserts,
+                "total-rate": self.total_inserts / (time.time() - self.start_time),
+            }
+            self.show_result(result, file)
+            self.results.append(result)
+
+    def show_result(self, result, file):
+        """show result"""
+        print(Stats.data_format.format(
+            result["time-string"],
+            result["elapsed"],
+            result["inserts"],
+            result["insert-rate"],
+            result["total"],
+            result["total-rate"]),
+              file=file)

@@ -2,6 +2,7 @@
 Main for pybench-mongodb
 """
 import argparse
+from datetime import datetime
 import logging
 import sys
 import time
@@ -46,6 +47,10 @@ def parse_args():
         "--version",
         action="version",
         version="%(prog)s {}".format(__version__))
+    parser.add_argument(
+        "--results-path",
+        default="results/",
+        help="folder in which to store results files")
     parser.add_argument(
         "--log-level",
         help="specify logging level")
@@ -101,16 +106,24 @@ def main():
 
             try:
                 testcase = Testcase(
-                    config["testcases"],
+                    config["testcase"],
                     config)
 
                 stats = Stats(
                     testcase.config.get("max-iterations"),
                     testcase.config.get("max-time-seconds"))
 
+                time_string = time.strftime(
+                    "%Y-%m-%d %H:%M",
+                    time.localtime())
                 testcase.run(mongod.get_uri(), stats)
+
+
             finally:
                 stats.end()
+                filename = "{} - {} {}".format(mongod.get_name(), testcase.get_name(), time_string)
+                with open(filename + ".csv", "w") as output:
+                    stats.save(output)
                 mongod.shutdown()
 
 

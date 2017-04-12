@@ -5,7 +5,7 @@
         "collection": "MyData",
         "random-text-buffer-size": 1000000,
         "random-bytes-buffer-size": 1000000,
-        "max-iterations": 100000000,
+        "max-iterations": 1000000,
         "max-time-seconds": 3600,
         "batch-size": 1000,
 
@@ -27,9 +27,45 @@
         "feedback-seconds": 5,
     },
     "testcase": {
-        "name": "iibench emulation",
+        "name": "Update",
         "steps": {
             "startup": {
+                "insert data": {
+                    "operation": "insert",
+                    "count": 1000,
+                    "doc": {
+                        "status": {
+                            "random-list": ["ready", "running", "repeated"]
+                        },
+                        "dateandtime": {
+                            "date": 0  // offset in +- seconds from current time
+                        }
+                        "guid": {
+                            "uuid": null
+                        },
+                        "guid-string": {
+                            "uuid-string": null
+                        },
+                        "cashregisterid": {
+                            "random-int": [0, 1000]
+                        },
+                        "customerid": {
+                            "random-int": [0, 100000]
+                        },
+                        "productid": {
+                            "random-int": [0, 10000]
+                        },
+                        "price": {
+                            "random-float": 1000
+                        },
+                        "cf1": {
+                            "iibench-string": {
+                                "length": 1000,
+                                "percent-compressible": 90
+                            }
+                        },
+                    }
+                },
                 "create indexes": {
                     "operation": "index",
                     "indexes": {
@@ -58,18 +94,18 @@
                 "insert data": {
                     "operation": "insert",
                     "doc": {
-                        //"status": {
-                        //    "random-list": ["ready", "running", "repeated"]
-                        //},
+                        "status": {
+                            "random-list": ["ready", "running", "repeated"]
+                        },
                         "dateandtime": {
                             "date": 0  // offset in +- seconds from current time
                         }
-                        //"guid": {
-                        //    "uuid": null
-                        //},
-                        //"guid-string": {
-                        //    "uuid-string": null
-                        //},
+                        "guid": {
+                            "uuid": null
+                        },
+                        "guid-string": {
+                            "uuid-string": null
+                        },
                         "cashregisterid": {
                             "random-int": [0, 1000]
                         },

@@ -21,6 +21,10 @@ class Mongod(object):
         """is enabled"""
         return not self.config.get("disabled", False)
 
+    def get_name(self):
+        """get name"""
+        return self.config["name"]
+
     def start(self):
         """start"""
         if self.config.get("clear-paths"):
