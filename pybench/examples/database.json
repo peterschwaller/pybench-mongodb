@@ -30,6 +30,25 @@
             }
         },
         {
+            "name": "MMAPv1",
+            "disabled": false,
+            "options": {
+                "storageEngine": "mmapv1",
+                "slowms": 20000,
+                "httpinterface": null,
+            }
+        },
+        {
+            "name": "InMemory 4GB",
+            "disabled": false,
+            "options": {
+                "storageEngine": "inMemory",
+                "inMemorySizeGB": 4,
+                "slowms": 20000,
+                "httpinterface": null,
+            }
+        },
+        {
             "name": "WT 4GB",
             "disabled": false,
             "options": {

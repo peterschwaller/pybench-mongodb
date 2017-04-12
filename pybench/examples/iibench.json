@@ -1,0 +1,96 @@
+{
+    // Set the defaults for ALL testcases
+    "testcase-defaults": {
+        "db-name": "pybench",
+        "collection": "MyData",
+        "random-text-buffer-size": 1000000,
+        "random-bytes-buffer-size": 1000000,
+        "max-iterations": 100000000,
+        "max-time-seconds": 60*60,
+        "batch-size": 1000,
+
+        // Valid values for xyz-method:
+        // "unordered-bulk"
+        // "ordered-bulk"
+        // "array" -- only valid for insert .insert(array)
+        // "single" -- one at a time
+        "batch-method": "array",
+
+        "rate-limit": 0,  // 0=no limit, otherwise set to operations per second
+
+        "threads-per-process": 15,
+        "process-count": 5,
+        "write-concern": {
+
+        },
+
+        "feedback-seconds": 5,
+    },
+    "testcases": {
+        "startup": {
+            "create indexes": {
+                "operation": "index",
+                "indexes": {
+                    "MyData": [
+                        //{
+                        //    "index": [["msgID", 1]],
+                        //    "kwargs": {
+                        //        "unique": true,
+                        //        "partialFilterExpression": {"msgID": {"$exists": 1}}
+                        //    },
+                        //},
+                        {
+                            "index": [["price", 1],["customerid", 1]],
+                        },
+                        {
+                            "index": [["cashregisterid", 1],["price", 1],["customerid", 1]],
+                        },
+                        {
+                            "index": [["dateandtime", 1]],
+                        },
+                    ]
+                }
+            },
+        },
+        "testing": {
+            "insert data": {
+                "operation": "insert",
+                "doc": {
+                    //"status": {
+                    //    "random-list": ["ready", "running", "repeated"]
+                    //},
+                    "dateandtime": {
+                        "date": 0  // offset in +- seconds from current time
+                    }
+                    //"guid": {
+                    //    "uuid": null
+                    //},
+                    //"guid-string": {
+                    //    "uuid-string": null
+                    //},
+                    "cashregisterid": {
+                        "random-int": [0, 1000]
+                    },
+                    "customerid": {
+                        "random-int": [0, 100000]
+                    },
+                    "productid": {
+                        "random-int": [0, 10000]
+                    },
+                    "price": {
+                        "random-float": 1000
+                    },
+                    "cf1": {
+                        "iibench-string": {
+                            "length": 1000,
+                            "percent-compressible": 90
+                        }
+                    },
+                }
+            },
+        },
+        "cleanup": {
+
+        }
+    }
+}

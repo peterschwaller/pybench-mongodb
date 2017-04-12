@@ -11,6 +11,7 @@ import hjson
 from pybench import __version__
 from .mongod import Mongod
 from .remerge import remerge
+from .stats import Stats
 from .testcase import Testcase
 
 
@@ -103,8 +104,13 @@ def main():
                     config["testcases"],
                     config)
 
-                testcase.run(mongod.get_uri())
+                stats = Stats(
+                    testcase.config.get("max-iterations"),
+                    testcase.config.get("max-time-seconds"))
+
+                testcase.run(mongod.get_uri(), stats)
             finally:
+                stats.end()
                 mongod.shutdown()
 
 

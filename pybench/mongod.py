@@ -60,7 +60,7 @@ class Mongod(object):
             cmd += " --quiet"
             cmd += " > /dev/null"
 
-        logging.debug("Shutting down database with command: ", cmd)
+        logging.debug("Shutting down database with command: %s", cmd)
         os.system(cmd)
         logging.info("Stopped %s", self.config.get("name"))
 
