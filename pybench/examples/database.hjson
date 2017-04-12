@@ -19,6 +19,17 @@
     },
     "databases": [
         {
+            "name": "WT 4GB",
+            "disabled": false,
+            "options": {
+                "storageEngine": "wiredTiger",
+                "wiredTigerCacheSizeGB": 4,
+                "wiredTigerJournalCompressor": "snappy"
+                "slowms": 20000,
+                "httpinterface": null,
+            }
+        },
+        {
             "name": "Rocks 4GB Snappy",
             "disabled": false,
             "options": {
@@ -48,16 +59,5 @@
                 "httpinterface": null,
             }
         },
-        {
-            "name": "WT 4GB",
-            "disabled": false,
-            "options": {
-                "storageEngine": "wiredTiger",
-                "wiredTigerCacheSizeGB": 4,
-                "wiredTigerJournalCompressor": "snappy"
-                "slowms": 20000,
-                "httpinterface": null,
-            }
-        }
     ]
 }

@@ -3,7 +3,9 @@ Main for pybench-mongodb
 """
 import argparse
 from datetime import datetime
+import json
 import logging
+import os
 import sys
 import time
 
@@ -118,12 +120,17 @@ def main():
                     time.localtime())
                 testcase.run(mongod.get_uri(), stats)
 
-
             finally:
                 stats.end()
+
+                results_path = os.path.expanduser(args.results_path)
+                os.makedirs(results_path, exist_ok=True)
+
                 filename = "{} - {} {}".format(mongod.get_name(), testcase.get_name(), time_string)
                 with open(filename + ".csv", "w") as output:
                     stats.save(output)
+                with open(filename + ".config.json", "w") as output:
+                    json.dump(config, output, indent=4, sort_keys=True)
                 mongod.shutdown()
 
 

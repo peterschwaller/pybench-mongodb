@@ -119,13 +119,16 @@ class Testcase(object):
         # pylint: disable=too-many-branches
         iterations = 0
 
-        insert_method = command.get("batch-method")
+        batch_method = command.get("batch-method")
         batch_size = command.get("batch-size")
 
-        bulk = self._get_bulk(database, insert_method, command.get("collection"))
+        bulk = self._get_bulk(database, batch_method, command.get("collection"))
 
         insert_array = []
         last_check = 0
+        last_log = 0
+        logged_inserts = 0
+
         while True:
             doc = self.build_doc(command.get("doc"))
             iterations += 1
@@ -142,18 +145,22 @@ class Testcase(object):
                     bulk.execute()
                     if stats:
                         stats.log("insert", {"inserts": batch_size})
-                    bulk = self._get_bulk(database, insert_method, command.get("collection"))
-            elif insert_method == "array":
+                    bulk = self._get_bulk(database, batch_method, command.get("collection"))
+            elif batch_method == "array":
                 insert_array.append(doc)
                 if iterations % batch_size == 0:
                     database[command.get("collection")].insert(insert_array)
                     if stats:
                         stats.log("insert", {"inserts": batch_size})
                     insert_array = []
-            elif insert_method == "single":
+            elif batch_method == "single":
                 database[command.get("collection")].insert(doc)
-                if stats:
-                    stats.log("insert", {"inserts": 1})
+                logged_inserts += 1
+                current_time = time.time()
+                if stats and current_time - last_log > 0.2:
+                    stats.log("insert", {"inserts": logged_inserts})
+                    logged_inserts = 0
+                    last_log = current_time
             else:
                 assert False
 

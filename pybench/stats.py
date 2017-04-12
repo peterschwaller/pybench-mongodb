@@ -121,6 +121,8 @@ class Stats(object):
                 output_count += 1
                 last_shown_index = time_index
 
+            if self.queue.full():
+                print("full")
             try:
                 item = self.queue.get(True, 0.1)
             except queue.Empty:

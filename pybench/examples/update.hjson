@@ -14,7 +14,7 @@
         // "ordered-bulk"
         // "array" -- only valid for insert .insert(array)
         // "single" -- one at a time
-        "batch-method": "array",
+        "batch-method": "single",
 
         "rate-limit": 0,  // 0=no limit, otherwise set to operations per second
 
