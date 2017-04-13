@@ -3,13 +3,13 @@ Throttle
 """
 
 import time
-import multiprocessing
+import threading
 
 
 class Throttle:
     """Throttle"""
     def __init__(self):
-        self.lock = multiprocessing.Lock()
+        self.lock = threading.Lock()
         self.last_time = 0
         self.interval = 0
 

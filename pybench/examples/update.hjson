@@ -19,7 +19,7 @@
         "rate-limit": 0,  // 0=no limit, otherwise set to operations per second
 
         "threads-per-process": 1,
-        "process-count": 2,
+        "process-count": 25,
         "write-concern": {
 
         },
