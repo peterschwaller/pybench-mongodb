@@ -20,7 +20,7 @@
     "databases": [
         {
             "name": "WT 4GB",
-            "disabled": false,
+            "disabled": true,
             "options": {
                 "storageEngine": "wiredTiger",
                 "wiredTigerCacheSizeGB": 4,
@@ -42,7 +42,7 @@
         },
         {
             "name": "MMAPv1",
-            "disabled": false,
+            "disabled": true,
             "options": {
                 "storageEngine": "mmapv1",
                 "slowms": 20000,
@@ -51,7 +51,7 @@
         },
         {
             "name": "InMemory 4GB",
-            "disabled": false,
+            "disabled": true,
             "options": {
                 "storageEngine": "inMemory",
                 "inMemorySizeGB": 4,

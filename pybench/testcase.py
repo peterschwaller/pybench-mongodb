@@ -17,6 +17,7 @@ import pymongo
 from pytz import utc
 
 from .remerge import remerge
+from .throttle import Throttle
 
 
 class Testcase(object):
@@ -37,6 +38,12 @@ class Testcase(object):
 
         self.bytes = bytes(
             [random.randrange(0, 256) for _ in range(self.config["random-bytes-buffer-size"])])
+
+        self.throttles = {
+            "insert": Throttle()
+        }
+
+        self.throttles["insert"].set_rate(5000, batch=1000, processes=self.config["process-count"])
 
     def get_name(self):
         """get name"""
@@ -142,6 +149,7 @@ class Testcase(object):
             if bulk:
                 bulk.insert(doc)
                 if iterations % batch_size == 0:
+                    self.throttles["insert"].wait()
                     bulk.execute()
                     if stats:
                         stats.log("insert", {"inserts": batch_size})
@@ -149,11 +157,13 @@ class Testcase(object):
             elif batch_method == "array":
                 insert_array.append(doc)
                 if iterations % batch_size == 0:
+                    self.throttles["insert"].wait()
                     database[command.get("collection")].insert(insert_array)
                     if stats:
                         stats.log("insert", {"inserts": batch_size})
                     insert_array = []
             elif batch_method == "single":
+                self.throttles["insert"].wait()
                 database[command.get("collection")].insert(doc)
                 logged_inserts += 1
                 current_time = time.time()

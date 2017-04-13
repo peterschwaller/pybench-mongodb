@@ -126,10 +126,14 @@ def main():
                 results_path = os.path.expanduser(args.results_path)
                 os.makedirs(results_path, exist_ok=True)
 
-                filename = "{} - {} {}".format(mongod.get_name(), testcase.get_name(), time_string)
-                with open(filename + ".csv", "w") as output:
+                filebase = "{} - {} {}".format(mongod.get_name(), testcase.get_name(), time_string)
+
+                filename = os.path.join(results_path, filebase + ".csv")
+                with open(filename, "w") as output:
                     stats.save(output)
-                with open(filename + ".config.json", "w") as output:
+
+                filename = os.path.join(results_path, filebase + ".config.json")
+                with open(filename, "w") as output:
                     json.dump(config, output, indent=4, sort_keys=True)
                 mongod.shutdown()
 
