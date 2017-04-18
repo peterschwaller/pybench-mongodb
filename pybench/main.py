@@ -44,7 +44,9 @@ def parse_args():
         "configfiles",
         metavar='CONFIG_FILES',
         nargs='+',
-        help="json configuration files")
+        help="Configuration file(s).  If multiple files are specified, they are merged"
+             " together.  If there is overlap in settings, the last file takes precedence."
+        )
     parser.add_argument(
         "--version",
         action="version",

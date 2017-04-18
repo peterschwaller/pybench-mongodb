@@ -43,7 +43,7 @@ class Testcase(object):
             "insert": Throttle()
         }
 
-        self.throttles["insert"].set_rate(5000, batch=1000, processes=self.config["process-count"])
+        # self.throttles["insert"].set_rate(18000, batch=1000, processes=self.config["process-count"])
 
     def get_name(self):
         """get name"""

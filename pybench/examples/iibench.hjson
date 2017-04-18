@@ -6,7 +6,7 @@
         "random-text-buffer-size": 1000000,
         "random-bytes-buffer-size": 1000000,
         "max-iterations": 100000000,
-        "max-time-seconds": 14400, // 3600,
+        "max-time-seconds": 3600,
         "batch-size": 1000,
 
         // Valid values for xyz-method:
