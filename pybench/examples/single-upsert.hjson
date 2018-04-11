@@ -1,0 +1,21 @@
+{
+    "testcase-defaults": {
+        // Valid values for xyz-method:
+        // "unordered-bulk"
+        // "ordered-bulk"
+        // "array" -- only valid for insert .insert(array)
+        // "single" -- one at a time
+        "batch-method": "unordered-bulk",
+        // "max-time-seconds": 300,
+    },
+    "testcase": {
+        "name": "single",
+        "steps": {
+            "testing": {
+                "insert data": {
+                    "operation": "upsert",
+                }
+            }
+        }
+    }
+}
