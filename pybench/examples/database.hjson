@@ -4,7 +4,7 @@
         "options": {
             "dbpath": "data/mongodb",
             "logpath": "data/mongod.log",
-            "pidfilepath": "/home/peter/dev/pybench-mongodb/pybench/data/mongod.pid",
+            "pidfilepath": "/zfs-pool/dev/pybench-mongodb/pybench/data/mongod.pid",
             "slowms": 10000,
             "profile": 0,
             "port": 40000,
@@ -19,22 +19,22 @@
     },
     "databases": [
         {
-            "name": "WT 16GB",
+            "name": "WT 4GB",
             "disabled": false,
             "options": {
                 "storageEngine": "wiredTiger",
-                "wiredTigerCacheSizeGB": 16,
+                "wiredTigerCacheSizeGB": 4,
                 "wiredTigerJournalCompressor": "snappy"
                 "slowms": 20000,
                 "httpinterface": null,
             }
         },
         {
-            "name": "Rocks 16GB Snappy",
-            "disabled": false,
+            "name": "Rocks 4GB Snappy",
+            "disabled": true,
             "options": {
                 "storageEngine": "rocksdb",
-                "rocksdbCacheSizeGB": 16,
+                "rocksdbCacheSizeGB": 4,
                 "rocksdbCompression": "snappy"
                 "slowms": 20000,
                 "httpinterface": null,

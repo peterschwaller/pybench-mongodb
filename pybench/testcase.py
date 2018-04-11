@@ -98,9 +98,10 @@ class Testcase(object):
         database = self.connect()
 
         for _, value in self.config.get(section, {}).items():
-            if value["operation"] == "insert":
+            if value["operation"] in ["insert", "upsert"]:
                 max_iterations = value.get("count", None)
                 self.insert(
+                    value["operation"],
                     database,
                     ChainMap(value, self.config),
                     stats,
@@ -121,7 +122,7 @@ class Testcase(object):
             bulk = None
         return bulk
 
-    def insert(self, database, command, stats, max_iterations=None):
+    def insert(self, operation, database, command, stats, max_iterations=None):
         """insert"""
         # pylint: disable=too-many-branches
         iterations = 0
@@ -137,7 +138,7 @@ class Testcase(object):
         logged_inserts = 0
 
         while True:
-            doc = self.build_doc(command.get("doc"))
+            doc = self.build_doc(command.get("doc"), operation)
             iterations += 1
 
             # Only check every 5 seconds
@@ -147,7 +148,12 @@ class Testcase(object):
                     break
 
             if bulk:
-                bulk.insert(doc)
+                if operation == "insert":
+                    bulk.insert(doc)
+                elif operation == "upsert":
+                    bulk.find({"_id": doc["_id"]}).upsert().update_one({"$set": doc})
+                else:
+                    assert False
                 if iterations % batch_size == 0:
                     self.throttles["insert"].wait()
                     bulk.execute()
@@ -155,6 +161,7 @@ class Testcase(object):
                         stats.log("insert", {"inserts": batch_size})
                     bulk = self._get_bulk(database, batch_method, command.get("collection"))
             elif batch_method == "array":
+                assert operation == "insert"
                 insert_array.append(doc)
                 if iterations % batch_size == 0:
                     self.throttles["insert"].wait()
@@ -164,7 +171,15 @@ class Testcase(object):
                     insert_array = []
             elif batch_method == "single":
                 self.throttles["insert"].wait()
-                database[command.get("collection")].insert(doc)
+                if operation == "insert":
+                    database[command.get("collection")].insert(doc)
+                elif operation == "upsert":
+                    database[command.get("collection")].update_one(
+                        {"_id": doc["_id"]},
+                        {"$set": doc},
+                        upsert=True)
+                else:
+                    assert False
                 logged_inserts += 1
                 current_time = time.time()
                 if stats and current_time - last_log > 0.2:
@@ -177,11 +192,13 @@ class Testcase(object):
             if max_iterations and iterations > max_iterations:
                 break
 
-    def build_doc(self, input_doc):
+    def build_doc(self, input_doc, operation):
         """build doc"""
         doc = {}
         for key, value in input_doc.items():
             doc[key] = self.resolve_value(value)
+        if operation == "upsert":
+            doc["_id"] = uuid.uuid4()
         return doc
 
     def resolve_value(self, value):

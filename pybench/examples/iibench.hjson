@@ -6,7 +6,7 @@
         "random-text-buffer-size": 1000000,
         "random-bytes-buffer-size": 1000000,
         "max-iterations": 100000000,
-        "max-time-seconds": 3600,
+        "max-time-seconds": 86400,
         "batch-size": 1000,
 
         // Valid values for xyz-method:
@@ -19,7 +19,7 @@
         "rate-limit": 0,  // 0=no limit, otherwise set to operations per second
 
         "threads-per-process": 1,
-        "process-count": 25,
+        "process-count": 5,
         "write-concern": {
 
         },
