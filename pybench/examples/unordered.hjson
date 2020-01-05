@@ -6,7 +6,7 @@
         // "array" -- only valid for insert .insert(array)
         // "single" -- one at a time
         "batch-method": "unordered-bulk",
-        "max-time-seconds": 300,
+        "max-time-seconds": 600,
     },
     "testcase": {
         "name": "unordered-bulk",

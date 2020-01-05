@@ -51,7 +51,7 @@ class Mongod(object):
         if "quiet" in self.config["options"]:
             cmd += " > /dev/null"
 
-        logging.debug("Starting database with command: %s", cmd)
+        logging.info("Starting database with command: %s", cmd)
         os.system(cmd)
         logging.info("Started %s", self.config.get("name"))
 

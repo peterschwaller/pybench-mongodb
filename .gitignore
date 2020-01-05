@@ -58,3 +58,7 @@ accounts.json
 *.vpw
 *.vpwhist
 *.vtg
+
+data/
+96data/
+results/

@@ -5,10 +5,18 @@
         // "ordered-bulk"
         // "array" -- only valid for insert .insert(array)
         // "single" -- one at a time
-        "batch-method": "single",
+        "batch-method": "unordered-bulk",
         "max-time-seconds": 600,
     },
     "testcase": {
-        "name": "single",
+        "name": "unordered-bulk-upsert",
+        "steps": {
+            "testing": {
+                "insert data": {
+                    "operation": "upsert",
+                }
+            }
+        }
+
     }
 }

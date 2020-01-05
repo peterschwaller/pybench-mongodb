@@ -1,21 +1,26 @@
 {
+    "database-defaults": {
+        "clear-paths": true,
+
+    },
     "testcase-defaults": {
         // Valid values for xyz-method:
         // "unordered-bulk"
         // "ordered-bulk"
         // "array" -- only valid for insert .insert(array)
         // "single" -- one at a time
-        "batch-method": "single",
-        "max-time-seconds": 600,
+        "batch-method": "array",
+        // "max-time-seconds": 28800,
     },
     "testcase": {
-        "name": "single-upsert",
+        "name": "array",
         "steps": {
             "testing": {
                 "insert data": {
-                    "operation": "upsert",
+                    "operation": "insert",
                 }
             }
         }
     }
 }
+
